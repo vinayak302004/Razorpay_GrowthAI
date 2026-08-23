@@ -1,0 +1,79 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Merchant {
+  id        String      @id @default(cuid())
+  name      String
+  email     String      @unique
+  products  Product[]
+  customers Customer[]
+  orders    Order[]
+  campaigns Campaign[]
+  auditLogs AuditLog[]
+  createdAt DateTime    @default(now())
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  merchantId  String
+  name        String
+  description String?
+  category    String
+  price       Int
+  stock       Int
+  tags        String?
+  merchant    Merchant @relation(fields: [merchantId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Customer {
+  id          String   @id @default(cuid())
+  merchantId  String
+  name        String
+  email       String
+  totalSpent  Int      @default(0)
+  lastPurchase DateTime?
+  merchant    Merchant @relation(fields: [merchantId], references: [id])
+  orders      Order[]
+  createdAt   DateTime @default(now())
+}
+
+model Order {
+  id               String   @id @default(cuid())
+  merchantId       String
+  customerId       String?
+  razorpayOrderId  String?
+  amount           Int
+  status           String   @default("CREATED")
+  merchant         Merchant @relation(fields: [merchantId], references: [id])
+  customer         Customer? @relation(fields: [customerId], references: [id])
+  createdAt        DateTime @default(now())
+}
+
+model Campaign {
+  id         String   @id @default(cuid())
+  merchantId String
+  name       String
+  target     String
+  offer      String
+  status     String   @default("DRAFT")
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  createdAt  DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  merchantId String
+  action     String
+  input      String?
+  output     String?
+  status     String
+  merchant   Merchant @relation(fields: [merchantId], references: [id])
+  createdAt  DateTime @default(now())
+}
