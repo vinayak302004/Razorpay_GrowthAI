@@ -2,6 +2,7 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import helmet from "helmet";
+import crypto from "crypto";
 
 import { prisma } from "./config/database.js";
 import { analyzeGrowthOpportunities } from "./services/growthAgent.js";
@@ -214,12 +215,8 @@ app.post("/api/payments/create-order", async (req, res) => {
 
     const amount = product.price * quantity;
 
-    /*
-     * Razorpay expects amount in the smallest
-     * currency unit. For INR this is paise.
-     */
     const razorpayOrder = await razorpay.orders.create({
-      amount: amount * 100,
+      amount: Math.round(amount * 100),
       currency: "INR",
       receipt: `rg_${Date.now()}`,
       notes: {
@@ -229,9 +226,6 @@ app.post("/api/payments/create-order", async (req, res) => {
       },
     });
 
-    /*
-     * Store the order in our database.
-     */
     const order = await prisma.order.create({
       data: {
         merchantId: merchant.id,
@@ -246,16 +240,10 @@ app.post("/api/payments/create-order", async (req, res) => {
       success: true,
       order,
       razorpay: {
-        id: razorpayOrder.id,
+        key: process.env.RAZORPAY_KEY_ID,
+        orderId: razorpayOrder.id,
         amount: razorpayOrder.amount,
         currency: razorpayOrder.currency,
-        keyId: process.env.RAZORPAY_KEY_ID,
-      },
-      product: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        quantity,
       },
     });
   } catch (error) {
@@ -267,6 +255,104 @@ app.post("/api/payments/create-order", async (req, res) => {
   }
 });
 
+/* =========================
+   VERIFY RAZORPAY PAYMENT
+========================= */
+
+app.post("/api/payments/verify", async (req, res) => {
+  try {
+    const {
+      orderId,
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    } = req.body;
+
+    if (
+      !orderId ||
+      !razorpay_order_id ||
+      !razorpay_payment_id ||
+      !razorpay_signature
+    ) {
+      return res.status(400).json({
+        error: "Payment verification data is incomplete",
+      });
+    }
+
+    const generatedSignature = crypto
+      .createHmac(
+        "sha256",
+        process.env.RAZORPAY_KEY_SECRET
+      )
+      .update(
+        `${razorpay_order_id}|${razorpay_payment_id}`
+      )
+      .digest("hex");
+
+    if (generatedSignature !== razorpay_signature) {
+      return res.status(400).json({
+        success: false,
+        error: "Invalid payment signature",
+      });
+    }
+
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        error: "Order not found",
+      });
+    }
+
+    if (order.razorpayOrderId !== razorpay_order_id) {
+      return res.status(400).json({
+        error: "Razorpay order mismatch",
+      });
+    }
+
+    const updatedOrder = await prisma.order.update({
+      where: {
+        id: orderId,
+      },
+      data: {
+        status: "PAID",
+      },
+    });
+
+    await prisma.auditLog.create({
+      data: {
+        merchantId: order.merchantId,
+        action: "PAYMENT_VERIFIED",
+        input: JSON.stringify({
+          orderId,
+          razorpay_order_id,
+          razorpay_payment_id,
+        }),
+        output: JSON.stringify({
+          status: "PAID",
+          amount: order.amount,
+        }),
+        status: "SUCCESS",
+      },
+    });
+
+    res.json({
+      success: true,
+      message: "Payment verified successfully",
+      order: updatedOrder,
+    });
+  } catch (error) {
+    console.error("Payment verification error:", error);
+
+    res.status(500).json({
+      error: "Failed to verify payment",
+    });
+  }
+});
 
 /* =========================
    CAMPAIGNS

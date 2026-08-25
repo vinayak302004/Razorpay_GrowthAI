@@ -515,3 +515,25 @@ tbody tr:hover {
   margin-top: 30px;
   text-align: center;
 }
+
+.payment-preview{
+  margin:20px 0;
+  padding:20px;
+  border-radius:14px;
+  background:#eef2ff;
+  border:1px solid #c7d2fe;
+}
+
+.payment-preview p{
+  margin:8px 0;
+}
+
+select{
+  width:100%;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  margin-top:12px;
+  margin-bottom:18px;
+  font-size:15px;
+}

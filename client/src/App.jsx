@@ -1,6 +1,24 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 
+function loadRazorpayScript() {
+  return new Promise((resolve) => {
+    if (window.Razorpay) {
+      resolve(true);
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://checkout.razorpay.com/v1/checkout.js";
+
+    script.onload = () => resolve(true);
+
+    script.onerror = () => resolve(false);
+
+    document.body.appendChild(script);
+  });
+}
+
 const API =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -74,10 +92,7 @@ function App() {
         )}
 
         {activePage === "Payments" && (
-          <PlaceholderPage
-            title="Payments"
-            description="Razorpay Test Mode payment flows will appear here."
-          />
+          <Payments API={API} />
         )}
 
         {activePage === "Audit Logs" && (
@@ -1183,6 +1198,331 @@ function CampaignModal({
     </div>
   );
 }
+
+
+/* =========================
+   PAYMENTS
+========================= */
+
+/* =========================
+   PAYMENTS
+========================= */
+
+function Payments({ API }) {
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
+
+  useEffect(() => {
+    axios
+      .get(`${API}/products`)
+      .then((res) => {
+        setProducts(res.data);
+
+        if (res.data.length > 0) {
+          setSelectedProduct(res.data[0].id);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setMessage("Failed to load products");
+      });
+  }, [API]);
+
+  async function loadRazorpay() {
+    return new Promise((resolve) => {
+      if (window.Razorpay) {
+        resolve(true);
+        return;
+      }
+
+      const script = document.createElement("script");
+
+      script.src =
+        "https://checkout.razorpay.com/v1/checkout.js";
+
+      script.onload = () => resolve(true);
+
+      script.onerror = () => resolve(false);
+
+      document.body.appendChild(script);
+    });
+  }
+
+  async function createPayment() {
+    if (!selectedProduct) {
+      setMessage("Please select a product");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      setMessage("");
+
+      const loaded = await loadRazorpay();
+
+      if (!loaded) {
+        setMessage(
+          "Razorpay Checkout failed to load"
+        );
+        return;
+      }
+
+      /* Create order in backend */
+      const response = await axios.post(
+        `${API}/payments/create-order`,
+        {
+          productId: selectedProduct,
+          quantity: 1,
+        }
+      );
+
+      const data = response.data;
+
+      const product = products.find(
+        (p) => p.id === selectedProduct
+      );
+
+      if (!product) {
+        setMessage("Selected product not found");
+        return;
+      }
+
+      /* Razorpay Checkout */
+      const options = {
+        key: data.razorpay.key,
+
+        amount: data.razorpay.amount,
+
+        currency: data.razorpay.currency,
+
+        name: "RazorGrowth AI",
+
+        description: product.name,
+
+        order_id: data.razorpay.orderId,
+
+        handler: async function (paymentResponse) {
+          try {
+            setMessage(
+              "Payment completed. Verifying..."
+            );
+
+            /* Verify payment on backend */
+            const verifyResponse = await axios.post(
+              `${API}/payments/verify`,
+              {
+                orderId: data.order.id,
+
+                razorpay_order_id:
+                  paymentResponse.razorpay_order_id,
+
+                razorpay_payment_id:
+                  paymentResponse.razorpay_payment_id,
+
+                razorpay_signature:
+                  paymentResponse.razorpay_signature,
+              }
+            );
+
+            if (verifyResponse.data.success) {
+              setMessage(
+                "✅ Payment successful and verified!"
+              );
+            }
+          } catch (error) {
+            console.error(
+              "Payment verification failed:",
+              error
+            );
+
+            setMessage(
+              error.response?.data?.error ||
+                "Payment verification failed"
+            );
+          }
+        },
+
+        prefill: {
+          name: "Demo Customer",
+          email: "customer@example.com",
+          contact: "9999999999",
+        },
+
+        theme: {
+          color: "#3399cc",
+        },
+      };
+
+      const razorpayCheckout =
+        new window.Razorpay(options);
+
+      razorpayCheckout.on(
+        "payment.failed",
+        function (response) {
+          console.error(
+            "Payment failed:",
+            response.error
+          );
+
+          setMessage(
+            `❌ Payment failed: ${
+              response.error.description ||
+              "Unknown error"
+            }`
+          );
+        }
+      );
+
+      razorpayCheckout.open();
+    } catch (error) {
+      console.error(
+        "Payment creation error:",
+        error
+      );
+
+      setMessage(
+        error.response?.data?.error ||
+          "Failed to create payment"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <>
+      <header>
+        <div>
+          <p className="eyebrow">
+            RAZORPAY TEST MODE
+          </p>
+
+          <h2>Payments</h2>
+
+          <p className="muted">
+            Convert AI recommendations into
+            Razorpay Test Mode payments.
+          </p>
+        </div>
+      </header>
+
+      <section className="metrics">
+        <Metric
+          title="Gateway"
+          value="Razorpay Test Mode"
+        />
+
+        <Metric
+          title="Currency"
+          value="INR"
+        />
+
+        <Metric
+          title="Orders"
+          value="Connected"
+        />
+
+        <Metric
+          title="Status"
+          value="Sandbox"
+        />
+      </section>
+
+      <div className="card payment-card">
+        <h3>Create Test Payment</h3>
+
+        <p>
+          Select a merchant product to open
+          Razorpay Test Mode Checkout.
+        </p>
+
+        <select
+          value={selectedProduct}
+          onChange={(e) =>
+            setSelectedProduct(e.target.value)
+          }
+        >
+          <option value="">
+            Select a product
+          </option>
+
+          {products.map((product) => (
+            <option
+              key={product.id}
+              value={product.id}
+            >
+              {product.name} — ₹
+              {product.price.toLocaleString("en-IN")}
+            </option>
+          ))}
+        </select>
+
+        {selectedProduct && (
+          <div className="payment-preview">
+            {(() => {
+              const product = products.find(
+                (p) => p.id === selectedProduct
+              );
+
+              if (!product) {
+                return null;
+              }
+
+              return (
+                <>
+                  <p>
+                    <strong>
+                      {product.name}
+                    </strong>
+                  </p>
+
+                  <p>
+                    {product.description}
+                  </p>
+
+                  <p>
+                    Amount:{" "}
+                    <strong>
+                      ₹
+                      {product.price.toLocaleString(
+                        "en-IN"
+                      )}
+                    </strong>
+                  </p>
+
+                  <p>
+                    Stock:{" "}
+                    <strong>
+                      {product.stock}
+                    </strong>
+                  </p>
+                </>
+              );
+            })()}
+          </div>
+        )}
+
+        <button
+          onClick={createPayment}
+          disabled={loading || !selectedProduct}
+        >
+          {loading
+            ? "Creating Order..."
+            : "Pay with Razorpay Test Mode"}
+        </button>
+
+        {message && (
+          <p className="payment-message">
+            {message}
+          </p>
+        )}
+      </div>
+    </>
+  );
+}
+
 
 /* =========================
    PLACEHOLDER PAGES
