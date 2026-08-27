@@ -613,6 +613,39 @@ app.post("/api/ai/opportunities/reject", async (req, res) => {
   }
 });
 
+/* =========================
+   AUDIT LOGS
+========================= */
+
+app.get("/api/audit-logs", async (_req, res) => {
+  try {
+    const merchant = await prisma.merchant.findFirst();
+
+    if (!merchant) {
+      return res.status(404).json({
+        error: "Merchant not found",
+      });
+    }
+
+    const auditLogs = await prisma.auditLog.findMany({
+      where: {
+        merchantId: merchant.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    res.json(auditLogs);
+  } catch (error) {
+    console.error("Audit logs error:", error);
+
+    res.status(500).json({
+      error: "Failed to fetch audit logs",
+    });
+  }
+});
+
 
 /* =========================
    LAUNCH CAMPAIGN

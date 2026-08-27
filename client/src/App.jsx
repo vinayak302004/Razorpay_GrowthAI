@@ -96,10 +96,7 @@ function App() {
         )}
 
         {activePage === "Audit Logs" && (
-          <PlaceholderPage
-            title="Audit Logs"
-            description="Every AI action, approval, payment and campaign change will be recorded here."
-          />
+          <AuditLogs API={API} />
         )}
       </main>
     </div>
@@ -1519,6 +1516,246 @@ function Payments({ API }) {
           </p>
         )}
       </div>
+    </>
+  );
+}
+
+/*********************************
+   AUDIT LOGS
+**********************************/
+
+function AuditLogs({ API }) {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    loadLogs();
+  }, [API]);
+
+  async function loadLogs() {
+    try {
+      setLoading(true);
+      setError("");
+
+      const response = await axios.get(
+        `${API}/audit-logs`
+      );
+
+      setLogs(response.data);
+    } catch (error) {
+      console.error("Failed to load audit logs:", error);
+
+      setError(
+        error.response?.data?.error ||
+          "Failed to load audit logs"
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  function formatAction(action) {
+    return action
+      .replaceAll("_", " ")
+      .toLowerCase()
+      .replace(/\b\w/g, (char) =>
+        char.toUpperCase()
+      );
+  }
+
+  function formatDate(date) {
+    return new Date(date).toLocaleString("en-IN", {
+      dateStyle: "medium",
+      timeStyle: "short",
+    });
+  }
+
+  function parseJSON(value) {
+    if (!value) return null;
+
+    try {
+      return JSON.parse(value);
+    } catch {
+      return null;
+    }
+  }
+
+  return (
+    <>
+      <header>
+        <div>
+          <p className="eyebrow">
+            RAZORGROWTH AI
+          </p>
+
+          <h2>Audit Logs</h2>
+
+          <p className="muted">
+            Every AI action, approval, payment and
+            campaign change is recorded here.
+          </p>
+        </div>
+
+        <button
+          className="refresh-button"
+          onClick={loadLogs}
+        >
+          ↻ Refresh
+        </button>
+      </header>
+
+      <section className="metrics">
+        <Metric
+          title="Total Events"
+          value={logs.length}
+        />
+
+        <Metric
+          title="Payments"
+          value={
+            logs.filter(
+              (log) =>
+                log.action === "PAYMENT_VERIFIED"
+            ).length
+          }
+        />
+
+        <Metric
+          title="AI Approvals"
+          value={
+            logs.filter(
+              (log) =>
+                log.action ===
+                "APPROVE_OPPORTUNITY"
+            ).length
+          }
+        />
+
+        <Metric
+          title="Campaign Launches"
+          value={
+            logs.filter(
+              (log) =>
+                log.action ===
+                "CAMPAIGN_LAUNCHED"
+            ).length
+          }
+        />
+      </section>
+
+      {loading ? (
+        <div className="card">
+          <p>Loading audit logs...</p>
+        </div>
+      ) : error ? (
+        <div className="card">
+          <p>{error}</p>
+
+          <button onClick={loadLogs}>
+            Retry
+          </button>
+        </div>
+      ) : logs.length === 0 ? (
+        <div className="card empty-state">
+          <h3>No audit events yet</h3>
+
+          <p>
+            AI actions, approvals, payments and
+            campaign changes will appear here.
+          </p>
+        </div>
+      ) : (
+        <div className="card">
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>Time</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Details</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                {logs.map((log) => {
+                  const input = parseJSON(log.input);
+                  const output = parseJSON(log.output);
+
+                  return (
+                    <tr key={log.id}>
+                      <td>
+                        {formatDate(log.createdAt)}
+                      </td>
+
+                      <td>
+                        <strong>
+                          {formatAction(log.action)}
+                        </strong>
+                      </td>
+
+                      <td>
+                        <strong>
+                          {log.status}
+                        </strong>
+                      </td>
+
+                      <td>
+                        {log.action ===
+                          "PAYMENT_VERIFIED" && (
+                          <span>
+                            Payment verified
+                            {input?.razorpay_payment_id
+                              ? ` • ${input.razorpay_payment_id}`
+                              : ""}
+                          </span>
+                        )}
+
+                        {log.action ===
+                          "APPROVE_OPPORTUNITY" && (
+                          <span>
+                            {output?.campaignName
+                              ? `Campaign created: ${output.campaignName}`
+                              : "AI opportunity approved"}
+                          </span>
+                        )}
+
+                        {log.action ===
+                          "REJECT_OPPORTUNITY" && (
+                          <span>
+                            {output?.reason ||
+                              "AI opportunity rejected"}
+                          </span>
+                        )}
+
+                        {log.action ===
+                          "CAMPAIGN_LAUNCHED" && (
+                          <span>
+                            {input?.campaignName ||
+                              "Campaign launched"}
+                          </span>
+                        )}
+
+                        {![
+                          "PAYMENT_VERIFIED",
+                          "APPROVE_OPPORTUNITY",
+                          "REJECT_OPPORTUNITY",
+                          "CAMPAIGN_LAUNCHED",
+                        ].includes(log.action) && (
+                          <span>
+                            Event recorded
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </>
   );
 }
