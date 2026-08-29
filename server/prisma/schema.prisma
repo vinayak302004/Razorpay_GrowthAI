@@ -29,6 +29,7 @@ model Product {
   stock       Int
   tags        String?
   merchant    Merchant @relation(fields: [merchantId], references: [id])
+  orders      Order[]
   createdAt   DateTime @default(now())
 }
 
@@ -48,11 +49,14 @@ model Order {
   id               String   @id @default(cuid())
   merchantId       String
   customerId       String?
+  productId        String
+  quantity         Int      @default(1)
   razorpayOrderId  String?
   amount           Int
   status           String   @default("CREATED")
   merchant         Merchant @relation(fields: [merchantId], references: [id])
   customer         Customer? @relation(fields: [customerId], references: [id])
+  product          Product  @relation(fields: [productId], references: [id])
   createdAt        DateTime @default(now())
 }
 

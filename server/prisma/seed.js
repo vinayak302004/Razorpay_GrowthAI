@@ -110,23 +110,34 @@ async function main() {
   ]);
 
   // Orders
-  const amounts = [
-    65999,
-    2198,
-    65999,
-    1499,
-    65999,
-    1299,
-    899,
-    1499,
+  const products = await prisma.product.findMany({
+    where: {
+      merchantId: merchant.id,
+    },
+  });
+
+  const orderData = [
+    { productIndex: 0, quantity: 1, customerIndex: 0 },
+    { productIndex: 1, quantity: 2, customerIndex: 1 },
+    { productIndex: 0, quantity: 1, customerIndex: 2 },
+    { productIndex: 3, quantity: 1, customerIndex: 3 },
+    { productIndex: 0, quantity: 1, customerIndex: 4 },
+    { productIndex: 1, quantity: 1, customerIndex: 0 },
+    { productIndex: 2, quantity: 1, customerIndex: 1 },
+    { productIndex: 3, quantity: 1, customerIndex: 2 },
   ];
 
-  for (let i = 0; i < amounts.length; i++) {
+  for (const item of orderData) {
+    const product = products[item.productIndex];
+    const customer = customers[item.customerIndex];
+
     await prisma.order.create({
       data: {
         merchantId: merchant.id,
-        customerId: customers[i % customers.length].id,
-        amount: amounts[i],
+        customerId: customer.id,
+        productId: product.id,
+        quantity: item.quantity,
+        amount: product.price * item.quantity,
         status: "PAID",
       },
     });

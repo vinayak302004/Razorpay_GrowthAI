@@ -1520,9 +1520,9 @@ function Payments({ API }) {
   );
 }
 
-/*********************************
+/* =========================
    AUDIT LOGS
-**********************************/
+========================= */
 
 function AuditLogs({ API }) {
   const [logs, setLogs] = useState([]);
@@ -1530,17 +1530,15 @@ function AuditLogs({ API }) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    loadLogs();
+    loadAuditLogs();
   }, [API]);
 
-  async function loadLogs() {
+  async function loadAuditLogs() {
     try {
       setLoading(true);
       setError("");
 
-      const response = await axios.get(
-        `${API}/audit-logs`
-      );
+      const response = await axios.get(`${API}/audit-logs`);
 
       setLogs(response.data);
     } catch (error) {
@@ -1559,8 +1557,8 @@ function AuditLogs({ API }) {
     return action
       .replaceAll("_", " ")
       .toLowerCase()
-      .replace(/\b\w/g, (char) =>
-        char.toUpperCase()
+      .replace(/\b\w/g, (letter) =>
+        letter.toUpperCase()
       );
   }
 
@@ -1571,14 +1569,21 @@ function AuditLogs({ API }) {
     });
   }
 
-  function parseJSON(value) {
-    if (!value) return null;
+  function getStatusClass(status) {
+    const value = status?.toLowerCase();
 
-    try {
-      return JSON.parse(value);
-    } catch {
-      return null;
+    if (
+      value === "success" ||
+      value === "approved"
+    ) {
+      return "success";
     }
+
+    if (value === "rejected") {
+      return "rejected";
+    }
+
+    return "default";
   }
 
   return (
@@ -1586,20 +1591,21 @@ function AuditLogs({ API }) {
       <header>
         <div>
           <p className="eyebrow">
-            RAZORGROWTH AI
+            GOVERNANCE & TRANSPARENCY
           </p>
 
           <h2>Audit Logs</h2>
 
           <p className="muted">
-            Every AI action, approval, payment and
-            campaign change is recorded here.
+            Complete record of AI actions, merchant
+            approvals, payments and campaign changes.
           </p>
         </div>
 
         <button
           className="refresh-button"
-          onClick={loadLogs}
+          onClick={loadAuditLogs}
+          disabled={loading}
         >
           ↻ Refresh
         </button>
@@ -1612,7 +1618,27 @@ function AuditLogs({ API }) {
         />
 
         <Metric
-          title="Payments"
+          title="Successful"
+          value={
+            logs.filter(
+              (log) =>
+                log.status === "SUCCESS" ||
+                log.status === "APPROVED"
+            ).length
+          }
+        />
+
+        <Metric
+          title="Rejected"
+          value={
+            logs.filter(
+              (log) => log.status === "REJECTED"
+            ).length
+          }
+        />
+
+        <Metric
+          title="Payment Events"
           value={
             logs.filter(
               (log) =>
@@ -1620,143 +1646,218 @@ function AuditLogs({ API }) {
             ).length
           }
         />
-
-        <Metric
-          title="AI Approvals"
-          value={
-            logs.filter(
-              (log) =>
-                log.action ===
-                "APPROVE_OPPORTUNITY"
-            ).length
-          }
-        />
-
-        <Metric
-          title="Campaign Launches"
-          value={
-            logs.filter(
-              (log) =>
-                log.action ===
-                "CAMPAIGN_LAUNCHED"
-            ).length
-          }
-        />
       </section>
 
-      {loading ? (
-        <div className="card">
+      <div className="card">
+        {loading ? (
           <p>Loading audit logs...</p>
-        </div>
-      ) : error ? (
-        <div className="card">
-          <p>{error}</p>
+        ) : error ? (
+          <div className="empty-state">
+            <h3>Unable to load audit logs</h3>
 
-          <button onClick={loadLogs}>
-            Retry
-          </button>
-        </div>
-      ) : logs.length === 0 ? (
-        <div className="card empty-state">
-          <h3>No audit events yet</h3>
+            <p>{error}</p>
 
-          <p>
-            AI actions, approvals, payments and
-            campaign changes will appear here.
-          </p>
-        </div>
-      ) : (
-        <div className="card">
+            <button onClick={loadAuditLogs}>
+              Try Again
+            </button>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="empty-state">
+            <h3>No audit events yet</h3>
+
+            <p>
+              AI actions, approvals, payments and
+              campaign changes will appear here.
+            </p>
+          </div>
+        ) : (
           <div className="table-wrapper">
             <table>
               <thead>
                 <tr>
-                  <th>Time</th>
                   <th>Action</th>
                   <th>Status</th>
                   <th>Details</th>
+                  <th>Timestamp</th>
                 </tr>
               </thead>
 
               <tbody>
-                {logs.map((log) => {
-                  const input = parseJSON(log.input);
-                  const output = parseJSON(log.output);
+                {logs.map((log) => (
+                  <tr key={log.id}>
+                    <td>
+                      <strong>
+                        {formatAction(log.action)}
+                      </strong>
+                    </td>
 
-                  return (
-                    <tr key={log.id}>
-                      <td>
-                        {formatDate(log.createdAt)}
-                      </td>
+                    <td>
+                      <span
+                        className={`audit-status ${getStatusClass(
+                          log.status
+                        )}`}
+                      >
+                        {log.status}
+                      </span>
+                    </td>
 
-                      <td>
-                        <strong>
-                          {formatAction(log.action)}
-                        </strong>
-                      </td>
+                    <td>
+                      <AuditDetails log={log} />
+                    </td>
 
-                      <td>
-                        <strong>
-                          {log.status}
-                        </strong>
-                      </td>
-
-                      <td>
-                        {log.action ===
-                          "PAYMENT_VERIFIED" && (
-                          <span>
-                            Payment verified
-                            {input?.razorpay_payment_id
-                              ? ` • ${input.razorpay_payment_id}`
-                              : ""}
-                          </span>
-                        )}
-
-                        {log.action ===
-                          "APPROVE_OPPORTUNITY" && (
-                          <span>
-                            {output?.campaignName
-                              ? `Campaign created: ${output.campaignName}`
-                              : "AI opportunity approved"}
-                          </span>
-                        )}
-
-                        {log.action ===
-                          "REJECT_OPPORTUNITY" && (
-                          <span>
-                            {output?.reason ||
-                              "AI opportunity rejected"}
-                          </span>
-                        )}
-
-                        {log.action ===
-                          "CAMPAIGN_LAUNCHED" && (
-                          <span>
-                            {input?.campaignName ||
-                              "Campaign launched"}
-                          </span>
-                        )}
-
-                        {![
-                          "PAYMENT_VERIFIED",
-                          "APPROVE_OPPORTUNITY",
-                          "REJECT_OPPORTUNITY",
-                          "CAMPAIGN_LAUNCHED",
-                        ].includes(log.action) && (
-                          <span>
-                            Event recorded
-                          </span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <td>
+                      {formatDate(log.createdAt)}
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </>
+  );
+}
+
+function AuditDetails({ log }) {
+  let input = null;
+  let output = null;
+
+  try {
+    input = log.input
+      ? JSON.parse(log.input)
+      : null;
+  } catch {
+    input = log.input;
+  }
+
+  try {
+    output = log.output
+      ? JSON.parse(log.output)
+      : null;
+  } catch {
+    output = log.output;
+  }
+
+  if (log.action === "PAYMENT_VERIFIED") {
+    return (
+      <div className="audit-details">
+        <div>
+          <span>Order</span>
+
+          <strong>
+            {input?.orderId || "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>Payment</span>
+
+          <strong>
+            {input?.razorpay_payment_id || "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>Amount</span>
+
+          <strong>
+            ₹
+            {output?.amount?.toLocaleString(
+              "en-IN"
+            ) || "—"}
+          </strong>
+        </div>
+      </div>
+    );
+  }
+
+  if (
+    log.action === "APPROVE_OPPORTUNITY"
+  ) {
+    return (
+      <div className="audit-details">
+        <div>
+          <span>Input</span>
+
+          <strong>
+            {typeof input === "string"
+              ? input
+              : input?.title ||
+                input?.type ||
+                "Opportunity approved"}
+          </strong>
+        </div>
+
+        {output?.campaignName && (
+          <div>
+            <span>Campaign</span>
+
+            <strong>
+              {output.campaignName}
+            </strong>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (
+    log.action === "REJECT_OPPORTUNITY"
+  ) {
+    return (
+      <div className="audit-details">
+        <div>
+          <span>Opportunity</span>
+
+          <strong>
+            {input || "—"}
+          </strong>
+        </div>
+
+        {output?.reason && (
+          <div>
+            <span>Reason</span>
+
+            <strong>
+              {output.reason}
+            </strong>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (
+    log.action === "CAMPAIGN_LAUNCHED"
+  ) {
+    return (
+      <div className="audit-details">
+        <div>
+          <span>Campaign</span>
+
+          <strong>
+            {input?.campaignName || "—"}
+          </strong>
+        </div>
+
+        <div>
+          <span>New Status</span>
+
+          <strong>
+            {output?.status || "—"}
+          </strong>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <span className="audit-text">
+      {typeof input === "string"
+        ? input
+        : "System event recorded"}
+    </span>
   );
 }
 
