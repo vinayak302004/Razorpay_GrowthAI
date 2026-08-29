@@ -281,6 +281,10 @@ app.post("/api/payments/verify", async (req, res) => {
       });
     }
 
+    /* =========================
+       VERIFY RAZORPAY SIGNATURE
+    ========================= */
+
     const generatedSignature = crypto
       .createHmac(
         "sha256",
@@ -298,11 +302,36 @@ app.post("/api/payments/verify", async (req, res) => {
       });
     }
 
-    /*
-    * Prevent duplicate payment processing.
-    * Razorpay/payment callbacks should never
-    * reduce stock or increase customer spending twice.
-    */
+    /* =========================
+       FETCH LOCAL ORDER
+    ========================= */
+
+    const order = await prisma.order.findUnique({
+      where: {
+        id: orderId,
+      },
+    });
+
+    if (!order) {
+      return res.status(404).json({
+        error: "Order not found",
+      });
+    }
+
+    /* =========================
+       VERIFY ORDER MATCH
+    ========================= */
+
+    if (order.razorpayOrderId !== razorpay_order_id) {
+      return res.status(400).json({
+        error: "Razorpay order mismatch",
+      });
+    }
+
+    /* =========================
+       PREVENT DUPLICATE PAYMENT
+    ========================= */
+
     if (order.status === "PAID") {
       return res.json({
         success: true,
@@ -311,9 +340,10 @@ app.post("/api/payments/verify", async (req, res) => {
       });
     }
 
-    /*
-    * Fetch the product associated with this order.
-    */
+    /* =========================
+       FETCH PRODUCT
+    ========================= */
+
     const product = await prisma.product.findFirst({
       where: {
         id: order.productId,
@@ -327,22 +357,23 @@ app.post("/api/payments/verify", async (req, res) => {
       });
     }
 
-    /*
-    * Make sure enough stock still exists.
-    */
+    /* =========================
+       CHECK STOCK
+    ========================= */
+
     if (product.stock < order.quantity) {
       return res.status(400).json({
         error: "Insufficient stock to complete this payment",
       });
     }
 
-    /*
-    * Update all related business data atomically.
-    */
+    /* =========================
+       ATOMIC BUSINESS UPDATE
+    ========================= */
+
     const result = await prisma.$transaction(async (tx) => {
-      /*
-      * 1. Mark order as PAID.
-      */
+      /* 1. Mark order as PAID */
+
       const updatedOrder = await tx.order.update({
         where: {
           id: orderId,
@@ -352,9 +383,8 @@ app.post("/api/payments/verify", async (req, res) => {
         },
       });
 
-      /*
-      * 2. Reduce product inventory.
-      */
+      /* 2. Reduce product inventory */
+
       const updatedProduct = await tx.product.update({
         where: {
           id: product.id,
@@ -366,10 +396,8 @@ app.post("/api/payments/verify", async (req, res) => {
         },
       });
 
-      /*
-      * 3. Update customer information
-      *    when the order has a customer.
-      */
+      /* 3. Update customer information */
+
       let updatedCustomer = null;
 
       if (order.customerId) {
@@ -386,13 +414,13 @@ app.post("/api/payments/verify", async (req, res) => {
         });
       }
 
-      /*
-      * 4. Record successful payment in audit log.
-      */
+      /* 4. Create audit log */
+
       const auditLog = await tx.auditLog.create({
         data: {
           merchantId: order.merchantId,
           action: "PAYMENT_VERIFIED",
+
           input: JSON.stringify({
             orderId,
             razorpay_order_id,
@@ -400,6 +428,7 @@ app.post("/api/payments/verify", async (req, res) => {
             productId: product.id,
             quantity: order.quantity,
           }),
+
           output: JSON.stringify({
             status: "PAID",
             amount: order.amount,
@@ -407,6 +436,7 @@ app.post("/api/payments/verify", async (req, res) => {
             stockRemaining: updatedProduct.stock,
             customerId: order.customerId,
           }),
+
           status: "SUCCESS",
         },
       });
@@ -419,20 +449,31 @@ app.post("/api/payments/verify", async (req, res) => {
       };
     });
 
+    /* =========================
+       RESPONSE
+    ========================= */
+
     res.json({
       success: true,
+
       message:
         "Payment verified successfully. Order, inventory, customer and audit log updated.",
+
       order: result.updatedOrder,
+
       product: {
         id: result.updatedProduct.id,
         name: result.updatedProduct.name,
         stockRemaining: result.updatedProduct.stock,
       },
+
       customer: result.updatedCustomer,
     });
   } catch (error) {
-    console.error("Payment verification error:", error);
+    console.error(
+      "Payment verification error:",
+      error
+    );
 
     res.status(500).json({
       error: "Failed to verify payment",
