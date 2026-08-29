@@ -19,6 +19,7 @@
     "express-rate-limit": "^8.0.1",
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
+    "openai": "^7.8.0",
     "razorgrowth-ai": "file:..",
     "razorpay": "^2.9.8",
     "uuid": "^11.1.0",
