@@ -637,6 +637,24 @@ app.post("/api/ai/opportunities/approve", async (req, res) => {
         "Personalized returning-customer offer on relevant products.";
     }
 
+    if (opportunity.type === "AOV_GROWTH") {
+      target =
+        "Customers likely to purchase complementary products";
+
+      offer =
+        opportunity.recommendation ||
+        "Recommend complementary products during checkout.";
+    }
+
+    if (opportunity.type === "TOP_PRODUCT") {
+      target =
+        "Customers likely to purchase this high-performing product";
+
+      offer =
+        opportunity.recommendation ||
+        "Promote this high-performing product to relevant customers.";
+    }
+
     /*
      * Create campaign only AFTER human approval.
      */
