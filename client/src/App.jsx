@@ -359,6 +359,16 @@ function AIAgent({ API }) {
   const [loading, setLoading] = useState(true);
   const [selectedOpportunity, setSelectedOpportunity] =
     useState(null);
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "Hi! I'm RazorGrowth AI. I can analyze your revenue, products, customers, upsell and cross-sell opportunities.",
+    },
+  ]);
+
+  const [chatInput, setChatInput] = useState("");
+  const [chatLoading, setChatLoading] = useState(false);
 
   useEffect(() => {
     loadOpportunities();
@@ -382,6 +392,65 @@ function AIAgent({ API }) {
       setLoading(false);
     }
   }
+
+  async function sendMessage(message = chatInput) {
+    const text = message.trim();
+
+    if (!text || chatLoading) {
+      return;
+    }
+
+    setMessages((previous) => [
+      ...previous,
+      {
+        role: "user",
+        content: text,
+      },
+    ]);
+
+    setChatInput("");
+    setChatLoading(true);
+
+    try {
+      const response = await axios.post(
+        `${API}/ai/chat`,
+        {
+          message: text,
+        }
+      );
+
+      setMessages((previous) => [
+        ...previous,
+        {
+          role: "assistant",
+          content:
+            response.data.message ||
+            "I couldn't generate a response.",
+          toolCalls: response.data.toolCalls || [],
+        },
+      ]);
+    } catch (error) {
+    console.error("AI chat failed:", error);
+
+    setMessages((previous) => [
+      ...previous,
+      {
+        role: "assistant",
+        content:
+          "AI service is temporarily unavailable. Please try again later.",
+      },
+    ]);
+  } finally {
+      setChatLoading(false);
+    }
+  }
+
+function handleChatKeyDown(event) {
+  if (event.key === "Enter" && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+}
 
   if (loading) {
     return (
@@ -518,6 +587,129 @@ function AIAgent({ API }) {
           API={API}
         />
       )}
+      {/* =========================
+          AI CHAT
+      ========================= */}
+
+      <section className="card ai-chat">
+        <div className="section-heading">
+          <div>
+            <p className="eyebrow">AI ASSISTANT</p>
+
+            <h3>Ask RazorGrowth AI</h3>
+
+            <p>
+              Ask questions about your merchant data,
+              revenue, products, customers and growth.
+            </p>
+          </div>
+        </div>
+
+        <div className="ai-chat-messages">
+          {messages.map((message, index) => (
+            <div
+              key={index}
+              className={`chat-message ${message.role}`}
+            >
+              <div className="chat-label">
+                {message.role === "user"
+                  ? "You"
+                  : "RazorGrowth AI"}
+              </div>
+
+              <div className="chat-bubble">
+                {message.content}
+              </div>
+
+              {message.toolCalls &&
+                message.toolCalls.length > 0 && (
+                  <div className="tool-used">
+                    🔧 Data tools used:{" "}
+                    {message.toolCalls
+                      .map((tool) => tool.tool)
+                      .join(", ")}
+                  </div>
+                )}
+            </div>
+          ))}
+
+          {chatLoading && (
+            <div className="chat-message assistant">
+              <div className="chat-label">
+                RazorGrowth AI
+              </div>
+
+              <div className="chat-bubble">
+                Analyzing your merchant data...
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="chat-suggestions">
+          <button
+            onClick={() =>
+              sendMessage(
+                "Which products should I upsell?"
+              )
+            }
+          >
+            Which products should I upsell?
+          </button>
+
+          <button
+            onClick={() =>
+              sendMessage(
+                "How much revenue have I generated and what is my average order value?"
+              )
+            }
+          >
+            Analyze my revenue
+          </button>
+
+          <button
+            onClick={() =>
+              sendMessage(
+                "What products are commonly bought together?"
+              )
+            }
+          >
+            Find cross-sell opportunities
+          </button>
+
+          <button
+            onClick={() =>
+              sendMessage(
+                "Show me my products and their current stock."
+              )
+            }
+          >
+            Check product stock
+          </button>
+        </div>
+
+        <div className="chat-input-row">
+          <textarea
+            value={chatInput}
+            onChange={(event) =>
+              setChatInput(event.target.value)
+            }
+            onKeyDown={handleChatKeyDown}
+            placeholder="Ask RazorGrowth AI..."
+            rows={2}
+            disabled={chatLoading}
+          />
+
+          <button
+            onClick={() => sendMessage()}
+            disabled={
+              chatLoading || !chatInput.trim()
+            }
+          >
+            {chatLoading ? "..." : "Send"}
+          </button>
+        </div>
+      </section>
     </>
   );
 }
@@ -1207,7 +1399,11 @@ function CampaignModal({
 
 function Payments({ API }) {
   const [products, setProducts] = useState([]);
+  const [customers, setCustomers] = useState([]);
+
   const [selectedProduct, setSelectedProduct] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
+
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -1224,6 +1420,22 @@ function Payments({ API }) {
       .catch((error) => {
         console.error(error);
         setMessage("Failed to load products");
+      });
+  }, [API]);
+
+  useEffect(() => {
+    axios
+      .get(`${API}/customers`)
+      .then((res) => {
+        setCustomers(res.data);
+
+        if (res.data.length > 0) {
+          setSelectedCustomer(res.data[0].id);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        setMessage("Failed to load customers");
       });
   }, [API]);
 
@@ -1253,6 +1465,11 @@ function Payments({ API }) {
       return;
     }
 
+    if (!selectedCustomer) {
+      setMessage("Please select a customer");
+      return;
+    }
+
     try {
       setLoading(true);
       setMessage("");
@@ -1271,6 +1488,7 @@ function Payments({ API }) {
         `${API}/payments/create-order`,
         {
           productId: selectedProduct,
+          customerId: selectedCustomer,
           quantity: 1,
         }
       );
@@ -1452,6 +1670,26 @@ function Payments({ API }) {
             >
               {product.name} — ₹
               {product.price.toLocaleString("en-IN")}
+            </option>
+          ))}
+        </select>
+
+        <select
+          value={selectedCustomer}
+          onChange={(e) =>
+            setSelectedCustomer(e.target.value)
+          }
+        >
+          <option value="">
+            Select a customer
+          </option>
+
+          {customers.map((customer) => (
+            <option
+              key={customer.id}
+              value={customer.id}
+            >
+              {customer.name} — {customer.email}
             </option>
           ))}
         </select>
