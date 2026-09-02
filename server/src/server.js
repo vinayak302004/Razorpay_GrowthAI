@@ -7,6 +7,7 @@ import crypto from "crypto";
 import { prisma } from "./config/database.js";
 import { analyzeGrowthOpportunities } from "./services/growthAgent.js";
 import { razorpay } from "./services/razorpay.js";
+import { runGrowthAgent } from "./ai/agent.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -510,6 +511,44 @@ app.get("/api/campaigns", async (_req, res) => {
 
     res.status(500).json({
       error: "Failed to fetch campaigns",
+    });
+  }
+});
+
+/* =========================
+   AI AGENT CHAT
+========================= */
+
+app.post("/api/ai/chat", async (req, res) => {
+  try {
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        error: "Message is required",
+      });
+    }
+
+    const merchant = await prisma.merchant.findFirst();
+
+    if (!merchant) {
+      return res.status(404).json({
+        error: "Merchant not found",
+      });
+    }
+
+    const result = await runGrowthAgent({
+      message,
+      merchantId: merchant.id,
+    });
+
+    res.json(result);
+  } catch (error) {
+    console.error("AI Agent Error:", error);
+
+    res.status(500).json({
+      error: "AI agent failed",
+      message: error.message,
     });
   }
 });
