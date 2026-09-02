@@ -11,7 +11,6 @@ import {
 const openai = new OpenAI({
   apiKey: process.env.LLM_API_KEY,
 });
-
 const tools = [
   {
     type: "function",
@@ -35,7 +34,6 @@ const tools = [
       additionalProperties: false,
     },
   },
-
   {
     type: "function",
     name: "get_customer_history",
@@ -58,7 +56,6 @@ const tools = [
       additionalProperties: false,
     },
   },
-
   {
     type: "function",
     name: "analyze_revenue",
@@ -77,7 +74,6 @@ const tools = [
       additionalProperties: false,
     },
   },
-
   {
     type: "function",
     name: "find_upsell",
@@ -96,7 +92,6 @@ const tools = [
       additionalProperties: false,
     },
   },
-
   {
     type: "function",
     name: "find_cross_sell",
@@ -116,7 +111,6 @@ const tools = [
     },
   },
 ];
-
 const toolFunctions = {
   search_products: searchProducts,
   get_customer_history: getCustomerHistory,
@@ -124,7 +118,6 @@ const toolFunctions = {
   find_upsell: findUpsell,
   find_cross_sell: findCrossSell,
 };
-
 export async function runGrowthAgent({
   message,
   merchantId,
@@ -162,9 +155,7 @@ ${merchantId}
       content: message,
     },
   ];
-
   const toolCalls = [];
-
   for (let step = 0; step < 5; step++) {
     const response = await openai.responses.create({
       model: process.env.LLM_MODEL,
@@ -172,36 +163,27 @@ ${merchantId}
       input,
       tools,
     });
-
     const functionCalls = response.output.filter(
       (item) => item.type === "function_call"
     );
-
     if (functionCalls.length === 0) {
       return {
         message: response.output_text,
         toolCalls,
       };
     }
-
     input = [...input, ...response.output];
-
     for (const call of functionCalls) {
       const toolFunction = toolFunctions[call.name];
-
       if (!toolFunction) {
         throw new Error(`Unknown tool: ${call.name}`);
       }
-
       const args = JSON.parse(call.arguments);
-
       const result = await toolFunction(args);
-
       toolCalls.push({
         tool: call.name,
         arguments: args,
       });
-
       input.push({
         type: "function_call_output",
         call_id: call.call_id,
@@ -209,6 +191,5 @@ ${merchantId}
       });
     }
   }
-
   throw new Error("Agent exceeded maximum tool-calling steps");
 }

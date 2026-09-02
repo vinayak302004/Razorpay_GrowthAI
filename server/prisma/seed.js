@@ -3,15 +3,12 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Clear existing demo data
   await prisma.auditLog.deleteMany();
   await prisma.campaign.deleteMany();
   await prisma.order.deleteMany();
   await prisma.customer.deleteMany();
   await prisma.product.deleteMany();
   await prisma.merchant.deleteMany();
-
-  // Merchant
   const merchant = await prisma.merchant.create({
     data: {
       name: "Demo Merchant",
@@ -19,7 +16,6 @@ async function main() {
     },
   });
 
-  // Products
   await prisma.product.createMany({
     data: [
       {
@@ -61,7 +57,6 @@ async function main() {
     ],
   });
 
-  // Customers
   const customers = await Promise.all([
     prisma.customer.create({
       data: {
@@ -109,13 +104,11 @@ async function main() {
     }),
   ]);
 
-  // Orders
   const products = await prisma.product.findMany({
     where: {
       merchantId: merchant.id,
     },
   });
-
   const orderData = [
     { productIndex: 0, quantity: 1, customerIndex: 0 },
     { productIndex: 1, quantity: 2, customerIndex: 1 },
@@ -126,7 +119,6 @@ async function main() {
     { productIndex: 2, quantity: 1, customerIndex: 1 },
     { productIndex: 3, quantity: 1, customerIndex: 2 },
   ];
-
   for (const item of orderData) {
     const product = products[item.productIndex];
     const customer = customers[item.customerIndex];
@@ -143,7 +135,6 @@ async function main() {
     });
   }
 
-  // Campaign
   await prisma.campaign.create({
     data: {
       merchantId: merchant.id,
@@ -154,7 +145,6 @@ async function main() {
     },
   });
 
-  // Audit logs
   await prisma.auditLog.createMany({
     data: [
       {
