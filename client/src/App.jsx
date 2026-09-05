@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import ReactMarkdown from "react-markdown";
 
 function loadRazorpayScript() {
   return new Promise((resolve) => {
@@ -641,7 +642,13 @@ function handleChatKeyDown(event) {
                   : "RazorGrowth AI"}
               </div>
               <div className="chat-bubble">
-                {message.content}
+                {message.role === "assistant" ? (
+                  <ReactMarkdown>
+                    {message.content}
+                  </ReactMarkdown>
+                ) : (
+                  message.content
+                )}
               </div>
               {message.toolCalls &&
                 message.toolCalls.length > 0 && (

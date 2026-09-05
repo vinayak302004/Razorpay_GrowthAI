@@ -1,32 +1,44 @@
 # RazorGrowth AI
 
-AI Revenue Growth & Agentic Commerce Platform for Razorpay AI Buildathon — Track 1.
+AI-powered Revenue Growth & Agentic Commerce Platform built for the **Razorpay AI Buildathon — Track 1**.
 
-## Goal
-Help merchants discover revenue opportunities, create controlled campaigns, recommend products, and convert recommendations into Razorpay Test Mode payments.
+RazorGrowth AI helps merchants identify revenue-growth opportunities, generate controlled campaigns, recommend relevant products, and convert approved recommendations into **Razorpay Test Mode payments** — while maintaining human approval, bounded actions, and an auditable trail.
 
-## Architecture
-React/Vite frontend → Express API → AI Agent/Tools → SQLite/Prisma → Razorpay Test Mode
+---
 
-## Planned Features
-- Merchant analytics dashboard
-- Product and customer catalog
-- AI revenue-growth agent
-- Upsell and cross-sell recommendations
-- Agent-readable product catalog
-- Campaign generation with merchant approval
-- Razorpay Test Mode checkout
-- Payment verification and webhook handling
-- Explainable, bounded financial actions
-- Audit logs and graceful failure handling
+## 🚀 Overview
 
-## Project Structure
-- `client/` — React frontend
-- `server/` — Express backend
-- `docs/` — architecture, demo notes and screenshots
+RazorGrowth AI combines merchant analytics, deterministic growth analysis, AI-powered recommendations, campaign governance, and Razorpay Test Mode payments into a single platform.
 
-## Setup
-See `docs/SETUP.md`.
+The system analyzes:
 
-## Security
-Never commit `.env`, Razorpay secrets, or API keys.
+- Merchant revenue
+- Products and inventory
+- Customer purchasing behavior
+- Paid orders
+- Upsell opportunities
+- Cross-sell opportunities
+- Customer reactivation opportunities
+
+AI recommendations are **not allowed to directly execute financial actions**.
+
+Instead, the platform follows a controlled workflow:
+
+```text
+Merchant Data
+     ↓
+Growth Analysis
+     ↓
+AI Recommendation
+     ↓
+Human Approval
+     ↓
+Draft Campaign
+     ↓
+Human Launch
+     ↓
+Razorpay Test Mode Payment
+     ↓
+Payment Verification
+     ↓
+Audit Log
