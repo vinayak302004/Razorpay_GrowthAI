@@ -608,11 +608,6 @@ select{
 .ai-governance-pill {
   color: #5f6368;
 }
-
-/* =========================================================
-   AI ASSISTANT — PREMIUM CHAT UI
-========================================================= */
-
 .ai-chat {
   margin-top: 34px;
   padding: 0;
@@ -622,9 +617,6 @@ select{
   border: 1px solid #e5e7eb;
   box-shadow: 0 10px 35px rgba(15, 23, 42, 0.06);
 }
-
-/* Chat header */
-
 .ai-chat .section-heading {
   margin: 0;
   padding: 26px 28px 22px;
@@ -637,21 +629,16 @@ select{
     ),
     #ffffff;
 }
-
 .ai-chat .section-heading h3 {
   margin: 4px 0 8px;
   font-size: 24px;
   letter-spacing: -0.025em;
 }
-
 .ai-chat .section-heading p:last-child {
   margin: 0;
   color: #6b7280;
   line-height: 1.6;
 }
-
-/* Small AI label */
-
 .ai-chat .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -659,7 +646,6 @@ select{
   color: #4f46e5;
   margin-bottom: 8px;
 }
-
 .ai-chat .eyebrow::before {
   content: "";
   width: 7px;
@@ -668,9 +654,6 @@ select{
   background: #4f46e5;
   box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
 }
-
-/* Messages area */
-
 .ai-chat-messages {
   min-height: 280px;
   max-height: 430px;
@@ -681,24 +664,16 @@ select{
   flex-direction: column;
   gap: 18px;
 }
-
-/* Custom scrollbar */
-
 .ai-chat-messages::-webkit-scrollbar {
   width: 7px;
 }
-
 .ai-chat-messages::-webkit-scrollbar-track {
   background: transparent;
 }
-
 .ai-chat-messages::-webkit-scrollbar-thumb {
   background: #d1d5db;
   border-radius: 999px;
 }
-
-/* Individual message */
-
 .chat-message {
   display: flex;
   flex-direction: column;
@@ -706,34 +681,23 @@ select{
   gap: 6px;
   animation: chatMessageIn 0.25s ease;
 }
-
 @keyframes chatMessageIn {
   from {
     opacity: 0;
     transform: translateY(5px);
   }
-
   to {
     opacity: 1;
     transform: translateY(0);
   }
 }
-
-/* Assistant message */
-
 .chat-message.assistant {
   align-self: flex-start;
 }
-
-/* User message */
-
 .chat-message.user {
   align-self: flex-end;
   align-items: flex-end;
 }
-
-/* Labels */
-
 .chat-label {
   font-size: 11px;
   font-weight: 800;
@@ -742,17 +706,12 @@ select{
   color: #64748b;
   padding: 0 5px;
 }
-
 .chat-message.assistant .chat-label {
   color: #4f46e5;
 }
-
 .chat-message.user .chat-label {
   color: #64748b;
 }
-
-/* Message bubbles */
-
 .chat-bubble {
   padding: 13px 16px;
   border-radius: 16px;
@@ -761,9 +720,6 @@ select{
   white-space: pre-wrap;
   word-break: break-word;
 }
-
-/* Assistant bubble */
-
 .chat-message.assistant .chat-bubble {
   background: #ffffff;
   color: #1f2937;
@@ -771,18 +727,12 @@ select{
   border-top-left-radius: 5px;
   box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
 }
-
-/* User bubble */
-
 .chat-message.user .chat-bubble {
   background: #111111;
   color: #ffffff;
   border-top-right-radius: 5px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
 }
-
-/* Tool usage indicator */
-
 .tool-used {
   display: inline-flex;
   align-items: center;
@@ -796,9 +746,6 @@ select{
   font-size: 11px;
   font-weight: 700;
 }
-
-/* Suggestions */
-
 .chat-suggestions {
   display: flex;
   flex-wrap: wrap;
@@ -806,7 +753,6 @@ select{
   padding: 18px 28px 10px;
   background: #ffffff;
 }
-
 .chat-suggestions button {
   background: #f8fafc;
   color: #374151;
@@ -817,16 +763,12 @@ select{
   font-weight: 600;
   box-shadow: none;
 }
-
 .chat-suggestions button:hover:not(:disabled) {
   background: #eef2ff;
   border-color: #c7d2fe;
   color: #4338ca;
   transform: translateY(-1px);
 }
-
-/* Input area */
-
 .chat-input-row {
   display: flex;
   align-items: flex-end;
@@ -834,9 +776,6 @@ select{
   padding: 10px 28px 26px;
   background: #ffffff;
 }
-
-/* Textarea */
-
 .chat-input-row textarea {
   flex: 1;
   min-height: 52px;
@@ -855,18 +794,13 @@ select{
     border-color 0.18s ease,
     box-shadow 0.18s ease;
 }
-
 .chat-input-row textarea::placeholder {
   color: #9ca3af;
 }
-
 .chat-input-row textarea:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
 }
-
-/* Send button */
-
 .chat-input-row > button {
   min-width: 82px;
   height: 52px;
@@ -877,125 +811,85 @@ select{
   font-size: 14px;
   box-shadow: 0 5px 14px rgba(0, 0, 0, 0.12);
 }
-
 .chat-input-row > button:hover:not(:disabled) {
   background: #252525;
   transform: translateY(-1px);
 }
-
-/* Loading bubble */
-
-.chat-message.assistant .chat-bubble:has(+ .tool-used) {
-  /* Keeps normal assistant responses visually consistent */
-}
-
-/* Responsive */
-
 @media (max-width: 700px) {
   .ai-chat .section-heading {
     padding: 22px 18px;
   }
-
   .ai-chat-messages {
     padding: 20px 18px;
     min-height: 240px;
   }
-
   .chat-message {
     max-width: 92%;
   }
-
   .chat-suggestions {
     padding: 16px 18px 8px;
   }
-
   .chat-input-row {
     padding: 10px 18px 20px;
   }
-
   .chat-input-row > button {
     min-width: 64px;
   }
 }
-/* AI Chat Messages */
 .message-content {
   line-height: 1.7;
   font-size: 15px;
 }
-
 .message-content p {
   margin: 0 0 14px;
 }
-
 .message-content p:last-child {
   margin-bottom: 0;
 }
-
 .message-content strong {
   font-weight: 700;
 }
-
 .message-content ul,
 .message-content ol {
   margin: 10px 0 16px;
   padding-left: 24px;
 }
-
 .message-content li {
   margin-bottom: 8px;
 }
-
 .message-content li:last-child {
   margin-bottom: 0;
 }
-
 .message-content h1,
 .message-content h2,
 .message-content h3 {
   margin: 16px 0 8px;
   font-size: 16px;
 }
-
 .message-content code {
   background: #f3f4f6;
   padding: 2px 6px;
   border-radius: 5px;
   font-size: 13px;
 }
-
-/* =========================================================
-   RESPONSIVE DESIGN
-   ========================================================= */
-
-/* ---------- Large tablets / small laptops ---------- */
-
 @media (max-width: 1100px) {
   .main {
     padding: 30px;
   }
-
   .metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-
   .grid {
     grid-template-columns: 1fr;
   }
-
   .sidebar {
     width: 220px;
   }
 }
-
-
-/* ---------- Tablets ---------- */
-
 @media (max-width: 900px) {
   .app {
     flex-direction: column;
   }
-
-  /* Turn sidebar into a top navigation */
   .sidebar {
     width: 100%;
     min-height: auto;
@@ -1004,12 +898,10 @@ select{
     padding: 16px 18px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
-
   .sidebar h1 {
     margin: 0 0 14px;
     font-size: 20px;
   }
-
   .sidebar nav {
     display: flex;
     gap: 6px;
@@ -1017,7 +909,6 @@ select{
     padding-bottom: 4px;
     scrollbar-width: thin;
   }
-
   .nav-item {
     width: auto;
     min-width: max-content;
@@ -1026,484 +917,353 @@ select{
     padding: 10px 14px;
     font-size: 14px;
   }
-
   .main {
     width: 100%;
     max-width: none;
     padding: 28px 24px;
   }
-
   .metrics {
     grid-template-columns: repeat(2, 1fr);
     gap: 14px;
   }
-
   .grid {
     grid-template-columns: 1fr;
   }
-
   .opportunity-stats {
     gap: 25px;
     flex-wrap: wrap;
   }
-
   .modal-overlay {
     padding: 20px;
   }
-
   .modal {
     width: 100%;
     max-height: 92vh;
   }
 }
-
-
-/* ---------- Mobile ---------- */
-
 @media (max-width: 600px) {
   body {
     overflow-x: hidden;
   }
-
   .sidebar {
     padding: 14px 12px;
   }
-
   .sidebar h1 {
     font-size: 18px;
     margin: 0 0 12px 4px;
   }
-
   .sidebar nav {
     gap: 5px;
   }
-
   .nav-item {
     padding: 9px 12px;
     font-size: 13px;
     border-radius: 8px;
   }
-
   .main {
     padding: 22px 14px;
   }
-
   h2 {
     font-size: 28px;
   }
-
   h3 {
     font-size: 19px;
   }
-
   .eyebrow {
     font-size: 10px;
   }
-
   .muted {
     font-size: 14px;
   }
-
-  /* Metrics */
   .metrics {
     grid-template-columns: 1fr;
     gap: 12px;
     margin: 22px 0;
   }
-
   .card {
     padding: 18px;
     border-radius: 14px;
   }
-
   .metric strong {
     font-size: 26px;
   }
-
-  /* General grids */
   .grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-
-  /* Tables */
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-
   table {
     min-width: 600px;
   }
-
   th,
   td {
     padding: 12px;
     font-size: 13px;
   }
-
-  /* AI Opportunities */
   .ai-opportunities {
     margin-top: 22px;
   }
-
   .opportunity-card {
     padding: 18px;
     border-radius: 14px;
   }
-
   .opportunity-top {
     align-items: flex-start;
     gap: 10px;
     flex-direction: column;
   }
-
   .opportunity-card h3 {
     font-size: 19px;
   }
-
   .opportunity-explanation {
     font-size: 14px;
   }
-
   .opportunity-stats {
     flex-direction: column;
     gap: 14px;
     margin: 18px 0;
     padding: 16px 0;
   }
-
   .opportunity-stats strong {
     font-size: 18px;
   }
-
   .opportunity-footer {
     flex-direction: column;
     align-items: stretch;
   }
-
   .opportunity-footer button,
   .refresh-button {
     width: 100%;
     text-align: center;
   }
-
-  /* Modals */
   .modal-overlay {
     padding: 10px;
     align-items: flex-start;
   }
-
   .modal {
     width: 100%;
     max-height: 94vh;
     margin-top: 10px;
     border-radius: 14px;
   }
-
   .modal-header {
     padding: 18px;
   }
-
   .modal-header h2 {
     font-size: 24px;
   }
-
   .modal-body {
     padding: 18px;
   }
-
   .modal-stats {
     flex-direction: column;
     gap: 16px;
   }
-
   .detail-row {
     flex-direction: column;
     gap: 5px;
   }
-
   .modal-footer {
     padding: 16px 18px;
     flex-direction: column-reverse;
   }
-
   .modal-footer button {
     width: 100%;
   }
-
-  /* Campaigns */
   .campaign-section {
     margin-top: 22px;
   }
-
   .campaign-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-
   .campaign-card {
     padding: 18px;
     border-radius: 14px;
   }
-
   .campaign-card h3 {
     font-size: 18px;
   }
-
   .campaign-card-footer {
     flex-direction: column;
     align-items: stretch;
   }
-
   .campaign-card-footer button {
     width: 100%;
   }
-
-  /* Payment */
   .payment-preview {
     padding: 16px;
     margin: 16px 0;
   }
-
   select {
     padding: 12px;
     font-size: 14px;
   }
-
-  /* Audit logs */
   .audit-details {
     max-width: 100%;
   }
-
   .audit-details div {
     align-items: flex-start;
     flex-direction: column;
     gap: 2px;
   }
-
-  /* Empty states */
   .empty-state {
     margin-top: 20px;
     padding: 10px;
   }
 }
-
-
-/* ---------- Very small phones ---------- */
-
 @media (max-width: 400px) {
   .main {
     padding: 18px 10px;
   }
-
   h2 {
     font-size: 24px;
   }
-
   .sidebar {
     padding: 12px 8px;
   }
-
   .sidebar h1 {
     font-size: 17px;
   }
-
   .nav-item {
     font-size: 12px;
     padding: 8px 10px;
   }
-
   .card {
     padding: 15px;
   }
-
   .opportunity-card,
   .campaign-card {
     padding: 15px;
   }
-
   .modal-overlay {
     padding: 6px;
   }
-
   .modal {
     border-radius: 12px;
   }
 }
-
-
-/* =========================================================
-   AI CHAT RESPONSIVE POLISH
-   ========================================================= */
-
 @media (max-width: 900px) {
   .message-content {
     max-width: 90%;
   }
 }
-
 @media (max-width: 600px) {
   .message-content {
     max-width: 100%;
     font-size: 14px;
   }
-
   .message-content ol,
   .message-content ul {
     padding-left: 20px;
   }
-
   .message-content li {
     margin-bottom: 7px;
   }
 }
-
-
-/* =========================================================
-   TOUCH DEVICE POLISH
-   ========================================================= */
-
 @media (hover: none) {
   button:hover:not(:disabled) {
     transform: none;
   }
-
   .card:hover {
     box-shadow: 0 6px 24px rgba(15, 23, 42, 0.045);
   }
 }
-
-/* =========================================================
-   RESPONSIVE DESIGN
-   ========================================================= */
-
-/* ---------- Tablet ---------- */
 @media (max-width: 1100px) {
   .sidebar {
     width: 220px;
   }
-
   .main {
     padding: 28px;
   }
-
   .metrics {
     grid-template-columns: repeat(2, 1fr);
   }
-
   .grid {
     grid-template-columns: 1fr;
   }
 }
-
-
-/* ---------- Mobile ---------- */
 @media (max-width: 768px) {
   body {
     overflow-x: hidden;
   }
-
   .app {
     display: block;
     min-height: 100vh;
   }
-
-  /* Hide desktop sidebar */
   .sidebar {
     display: none;
   }
-
   .main {
     width: 100%;
     max-width: none;
     padding: 20px 16px;
   }
-
-  /* Page header */
   h2 {
     font-size: 27px;
     line-height: 1.2;
   }
-
   h3 {
     font-size: 20px;
   }
-
   .eyebrow {
     font-size: 10px;
   }
-
   .muted {
     font-size: 14px;
   }
-
-  /* Metrics */
   .metrics {
     grid-template-columns: 1fr;
     gap: 12px;
     margin: 20px 0;
   }
-
   .card {
     padding: 18px;
     border-radius: 14px;
   }
-
   .metric strong {
     font-size: 26px;
   }
-
-  /* Main grid */
   .grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-
-  /* Tables */
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
   }
-
   table {
     min-width: 650px;
   }
-
   th {
     padding: 12px;
     font-size: 12px;
   }
-
   td {
     padding: 14px 12px;
     font-size: 13px;
   }
-
-  /* AI opportunities */
   .ai-opportunities {
     margin-top: 22px;
   }
-
   .opportunity-card {
     padding: 18px;
     border-radius: 14px;
   }
-
   .opportunity-top {
     align-items: flex-start;
     gap: 10px;
     flex-wrap: wrap;
   }
-
   .opportunity-card h3 {
     font-size: 19px;
   }
-
   .opportunity-explanation {
     font-size: 14px;
   }
-
   .opportunity-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -1511,160 +1271,118 @@ select{
     margin: 18px 0;
     padding: 16px 0;
   }
-
   .opportunity-stats strong {
     font-size: 17px;
   }
-
   .opportunity-footer {
     flex-direction: column;
     align-items: stretch;
   }
-
   .opportunity-footer button {
     width: 100%;
   }
-
-  /* Campaigns */
   .campaign-section {
     margin-top: 22px;
   }
-
   .campaign-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-
   .campaign-card {
     padding: 18px;
   }
-
   .campaign-card h3 {
     font-size: 18px;
   }
-
   .campaign-card-footer {
     flex-direction: column;
     align-items: stretch;
   }
-
   .campaign-card-footer button {
     width: 100%;
   }
-
-  /* Payment preview */
   .payment-preview {
     padding: 16px;
     margin: 16px 0;
   }
-
   select {
     font-size: 14px;
   }
-
-  /* Modal */
   .modal-overlay {
     padding: 12px;
     align-items: flex-end;
   }
-
   .modal {
     width: 100%;
     max-height: 92vh;
     border-radius: 18px 18px 0 0;
   }
-
   .modal-header {
     padding: 18px;
   }
-
   .modal-header h2 {
     font-size: 22px;
   }
-
   .modal-body {
     padding: 18px;
   }
-
   .modal-footer {
     padding: 16px 18px;
     flex-direction: column;
   }
-
   .modal-footer button {
     width: 100%;
   }
-
   .modal-stats {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 18px;
   }
-
   .detail-row {
     flex-direction: column;
     gap: 5px;
   }
-
-  /* Audit logs */
   .audit-details {
     max-width: 100%;
   }
-
-  /* AI status */
   .ai-status-row {
     gap: 7px;
   }
-
   .ai-status-pill,
   .ai-governance-pill {
     font-size: 11px;
   }
 }
-
-
-/* ---------- Small phones ---------- */
 @media (max-width: 480px) {
   .main {
     padding: 16px 12px;
   }
-
   h2 {
     font-size: 24px;
   }
-
   .card {
     padding: 16px;
   }
-
   .metric strong {
     font-size: 24px;
   }
-
   .opportunity-card {
     padding: 16px;
   }
-
   .opportunity-stats {
     grid-template-columns: 1fr;
     gap: 14px;
   }
-
   .modal-stats {
     grid-template-columns: 1fr;
   }
-
   .priority-badge {
     font-size: 10px;
   }
-
   .section-heading p {
     font-size: 13px;
   }
 }
-
-
-/* ---------- Touch-friendly controls ---------- */
 @media (max-width: 768px) {
   button,
   select,
@@ -1672,16 +1390,10 @@ select{
   textarea {
     min-height: 44px;
   }
-
   button {
     touch-action: manipulation;
   }
 }
-
-/* =========================================================
-   MOBILE NAVIGATION FIX
-========================================================= */
-
 @media (max-width: 768px) {
   .sidebar {
     display: block;
@@ -1692,12 +1404,10 @@ select{
     padding: 14px 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   }
-
   .sidebar h1 {
     margin: 0 0 12px 4px;
     font-size: 18px;
   }
-
   .sidebar nav {
     display: flex;
     gap: 6px;
@@ -1706,11 +1416,9 @@ select{
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
   }
-
   .sidebar nav::-webkit-scrollbar {
     display: none;
   }
-
   .nav-item {
     width: auto;
     min-width: max-content;
